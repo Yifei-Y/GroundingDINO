@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y \
@@ -9,7 +9,7 @@ RUN ln -sv /usr/bin/python3 /usr/bin/python
 ARG USER_ID=1000
 RUN useradd -m --no-log-init --system  --uid ${USER_ID} appuser -g sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-ENV SHELL=/bin/bash
+ENV SHELL=/bin/bash CUDA_HOME=/usr/local/cuda
 RUN usermod -s /bin/bash appuser
 USER appuser
 WORKDIR /home/appuser
@@ -22,10 +22,8 @@ RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && \
 # install dependencies
 # See https://pytorch.org/ for other options if you use a different version of CUDA
 RUN pip install --user tensorboard cmake nvitop   # cmake from apt-get is too old
-RUN pip install --user torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cu121
+RUN pip install --user torch==1.10.0+cu113 torchvision==0.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 
-# set FORCE_CUDA because during `docker build` cuda is not accessible
-ENV FORCE_CUDA="1"
 # This will by default build detectron2 for all common cuda architectures and take a lot more time,
 # because inside `docker build`, there is no way to tell which architecture will be used.
 ARG TORCH_CUDA_ARCH_LIST="Kepler;Kepler+Tesla;Maxwell;Maxwell+Tegra;Pascal;Volta;Turing"
