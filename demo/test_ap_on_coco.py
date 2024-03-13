@@ -19,6 +19,7 @@ import torchvision
 
 from groundingdino.util.vl_utils import build_captions_and_token_span, create_positive_map_from_span
 from groundingdino.datasets.cocogrounding_eval import CocoGroundingEvaluator
+from groundingdino.datasets.cocogrounding_eval_cls_agn import CocoGroundingEvaluatorClsAgn, COCO_INVOC_CATEGORIES, GRASPNET_KNOWN_CATEGORIES
 
 
 def load_model(model_config_path: str, model_checkpoint_path: str, device: str = "cuda"):
@@ -100,9 +101,9 @@ class PostProcessCocoGrounding(nn.Module):
         out_logits, out_bbox = outputs['pred_logits'], outputs['pred_boxes']
 
         # pos map to logit
-        prob_to_token = out_logits.sigmoid()  # bs, 100, 256
+        prob_to_token = out_logits.sigmoid()  # bs, 900, 256
         pos_maps = self.positive_map.to(prob_to_token.device)
-        # (bs, 100, 256) @ (91, 256).T -> (bs, 100, 91)
+        # (bs, 900, 256) @ (91, 256).T -> (bs, 900, 91)
         prob_to_label = prob_to_token @ pos_maps.T
 
         # if os.environ.get('IPDB_SHILONG_DEBUG', None) == 'INFO':
@@ -165,12 +166,25 @@ def main(args):
         coco_api=dataset.coco, tokenlizer=tokenlizer)
 
     # build evaluator
-    evaluator = CocoGroundingEvaluator(
-        dataset.coco, iou_types=("bbox",), useCats=True)
+    if args.eval_type == "close":
+        evaluator = CocoGroundingEvaluator(
+            dataset.coco, iou_types=("bbox",), useCats=True)
+    elif args.eval_type == "cls_agn":
+        evaluator = CocoGroundingEvaluatorClsAgn(dataset.coco, iou_types=("bbox",), dataset=args.dataset)
 
     # build captions
-    category_dict = dataset.coco.dataset['categories']
-    cat_list = [item['name'] for item in category_dict]
+    if args.class_names == "all":
+        category_dict = dataset.coco.dataset['categories']
+        cat_list = [item['name'] for item in category_dict]
+    elif args.class_names == "known":
+        assert args.eval_type == "cls_agn"
+        if args.dataset == "coco":
+            cat_list = COCO_INVOC_CATEGORIES + ['objects']
+        elif args.dataset == "graspnet":
+            cal_list = GRASPNET_KNOWN_CATEGORIES + ['objects']
+    elif args.class_names == "no":
+        assert args.eval_type == "cls_agn"
+        cat_list = ['objects']
     caption = " . ".join(cat_list) + ' .'
     print("Input text prompt:", caption)
 
@@ -183,7 +197,7 @@ def main(args):
         input_captions = [caption] * bs
 
         # feed to the model
-        outputs = model(images, captions=input_captions)
+        outputs = model(images, captions=input_captions) # {'pred_logits': tensor([bs, 900, 256]), 'pred_boxes': tensor([bs, 900, 4])}
 
         orig_target_sizes = torch.stack(
             [t["orig_size"] for t in targets], dim=0).to(images.device)
@@ -202,7 +216,7 @@ def main(args):
     evaluator.accumulate()
     evaluator.summarize()
 
-    print("Final results:", evaluator.coco_eval["bbox"].stats.tolist())
+    # print("Final results:", evaluator.coco_eval["bbox"].stats.tolist())
 
 
 if __name__ == "__main__":
@@ -228,6 +242,9 @@ if __name__ == "__main__":
                         required=True, help="coco image dir")
     parser.add_argument("--num_workers", type=int, default=4,
                         help="number of workers for dataloader")
+    parser.add_argument("--eval_type", type=str, default="close", choices=["close", "cls_agn"],)
+    parser.add_argument("--dataset", type=str, default="coco", choices=["coco", "graspnet"])
+    parser.add_argument("--class_names", type=str, default="all", choices=["all", "known", "no"])
     args = parser.parse_args()
 
     main(args)
