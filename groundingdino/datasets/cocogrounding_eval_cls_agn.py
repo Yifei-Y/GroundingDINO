@@ -271,7 +271,7 @@ GRASPNET_KNOWN_IDS = [graspnet_known_name_id_dic[name_cat] for name_cat in GRASP
 
 
 class CocoGroundingEvaluatorClsAgn(object):
-    def __init__(self, coco_gt, iou_types, dataset='coco'):
+    def __init__(self, coco_gt, output_file, iou_types, dataset='coco'):
         assert isinstance(iou_types, (list, tuple))
         if dataset == 'coco':
             known_ids = COCO_INVOC_IDS
@@ -306,6 +306,8 @@ class CocoGroundingEvaluatorClsAgn(object):
         self.eval_imgs_k = {k: [] for k in iou_types}
         self.eval_imgs_unk = {k: [] for k in iou_types}
         self.useCats = False
+
+        self.output_file = output_file
 
     def update(self, predictions):
         img_ids = list(np.unique(list(predictions.keys())))
@@ -352,9 +354,50 @@ class CocoGroundingEvaluatorClsAgn(object):
         for iou_type, coco_eval_k in self.coco_eval_k.items():
             print("KNOWN IoU metric: {}".format(iou_type))
             coco_eval_k.summarize()
+            with open(self.output_file, 'a') as f:
+                f.write("KNOWN IoU metric: {}\n".format(iou_type))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[0]))
+                f.write("Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[1]))
+                f.write("Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[2]))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[3]))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[4]))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[5]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = {:.3f}\n".format(coco_eval_k.stats[6]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = {:.3f}\n".format(coco_eval_k.stats[7]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 30 ] = {:.3f}\n".format(coco_eval_k.stats[8]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 50 ] = {:.3f}\n".format(coco_eval_k.stats[9]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[10]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=200 ] = {:.3f}\n".format(coco_eval_k.stats[11]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = {:.3f}\n".format(coco_eval_k.stats[12]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=500 ] = {:.3f}\n".format(coco_eval_k.stats[13]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = {:.3f}\n".format(coco_eval_k.stats[14]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[15]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[16]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = {:.3f}\n".format(coco_eval_k.stats[17]))
         for iou_type, coco_eval_unk in self.coco_eval_unk.items():
             print("UNKNOWN IoU metric: {}".format(iou_type))
             coco_eval_unk.summarize()
+            with open(self.output_file, 'a') as f:
+                f.write("UNKNOWN IoU metric: {}\n".format(iou_type))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[0]))
+                f.write("Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[1]))
+                f.write("Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[2]))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[3]))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[4]))
+                f.write("Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[5]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = {:.3f}\n".format(coco_eval_unk.stats[6]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = {:.3f}\n".format(coco_eval_unk.stats[7]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 30 ] = {:.3f}\n".format(coco_eval_unk.stats[8]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 50 ] = {:.3f}\n".format(coco_eval_unk.stats[9]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[10]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=200 ] = {:.3f}\n".format(coco_eval_unk.stats[11]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = {:.3f}\n".format(coco_eval_unk.stats[12]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=500 ] = {:.3f}\n".format(coco_eval_unk.stats[13]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = {:.3f}\n".format(coco_eval_unk.stats[14]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[15]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[16]))
+                f.write("Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = {:.3f}\n".format(coco_eval_unk.stats[17]))
+
 
     def prepare(self, predictions, iou_type):
         if iou_type == "bbox":
