@@ -95,7 +95,7 @@ class PostProcessCocoGrounding(nn.Module):
                           50: 56, 51: 57, 52: 58, 53: 59, 54: 60, 55: 61, 56: 62, 57: 63, 58: 64, 59: 65, 
                           60: 67, 61: 70, 62: 72, 63: 73, 64: 74, 65: 75, 66: 76, 67: 77, 68: 78, 69: 79, 
                           70: 80, 71: 81, 72: 82, 73: 84, 74: 85, 75: 86, 76: 87, 77: 88, 78: 89, 79: 90}
-            elif args.dataset == "graspnet":
+            else:
                 id_map = {
                     0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 
                     10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16, 16: 17, 17: 18, 18: 19, 19: 20, 
@@ -114,7 +114,7 @@ class PostProcessCocoGrounding(nn.Module):
                     10: 67, 11: 18, 12: 19, 13: 4, 14: 1, 15: 64, 16: 20, 17: 63, 18: 7, 19: 72,
                     20: 8
                 }
-            elif args.dataset == "graspnet":
+            else:
                 id_map = {
                     0: 1, 1: 3, 2: 6, 3: 8, 4: 9, 5: 10, 6: 12, 7: 15, 8: 18, 9: 19, 
                     10: 21, 11: 22, 12: 23, 13: 27, 14: 28, 15: 30, 16: 31, 17: 39, 18: 42, 19: 49, 
@@ -127,7 +127,7 @@ class PostProcessCocoGrounding(nn.Module):
         if args.dataset == "coco":
             # build a mapping from label_id to pos_map
             new_pos_map = torch.zeros((91, 256))
-        elif args.dataset == "graspnet":
+        else:
             # build a mapping from label_id to pos_map
             new_pos_map = torch.zeros((89, 256))
         for k, v in id_map.items():
@@ -226,7 +226,7 @@ def main(args):
         assert args.eval_type == "cls_agn"
         if args.dataset == "coco":
             cat_list = COCO_INVOC_CATEGORIES + ['objects']
-        elif args.dataset == "graspnet":
+        else:
             cat_list = GRASPNET_KNOWN_CATEGORIES + ['objects']
     elif args.class_names == "no":
         assert args.eval_type == "cls_agn"
@@ -297,7 +297,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=4,
                         help="number of workers for dataloader")
     parser.add_argument("--eval_type", type=str, default="close", choices=["close", "cls_agn"],)
-    parser.add_argument("--dataset", type=str, default="coco", choices=["coco", "graspnet"])
+    parser.add_argument("--dataset", type=str, default="coco")
     parser.add_argument("--class_names", type=str, default="all", choices=["all", "known", "no"])
     parser.add_argument("--output", type=str, default="results")
     args = parser.parse_args()

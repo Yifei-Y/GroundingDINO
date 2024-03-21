@@ -275,7 +275,7 @@ class CocoGroundingEvaluatorClsAgn(object):
         assert isinstance(iou_types, (list, tuple))
         if dataset == 'coco':
             known_ids = COCO_INVOC_IDS
-        elif dataset == 'graspnet':
+        else:
             known_ids = GRASPNET_KNOWN_IDS
         
         coco_gt_k = copy.deepcopy(coco_gt)
